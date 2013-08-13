@@ -13,7 +13,7 @@ heroku_rev='-1'
 
 # config
 MCRYPT_VERSION="2.5.8"
-APACHE_VERSION="2.2.25"
+APACHE_VERSION="2.4.6"
 APACHE_PATH="apache"
 PHP_VERSION="5.3.27"
 PHP_PATH="php"
@@ -42,9 +42,17 @@ MCRYPT_URL="https://heroku-buildpack-php.s3.amazonaws.com/mcrypt-""$MCRYPT_VERSI
 echo "-----> Bundling mcrypt version $MCRYPT_VERSION"
 curl --silent --max-time 60 --location "$MCRYPT_URL" | tar xz
 
-APACHE_URL="https://heroku-buildpack-php.s3.amazonaws.com/apache-""$APACHE_VERSION""$heroku_rev"".tar.gz"
+# APACHE_URL="https://heroku-buildpack-php.s3.amazonaws.com/apache-""$APACHE_VERSION""$heroku_rev"".tar.gz"
+APACHE_URL="http://mirrors.ibiblio.org/apache/httpd/httpd-$APACHE_VERSION.tar.gz"
 echo "-----> Bundling Apache version $APACHE_VERSION"
 curl --silent --max-time 60 --location "$APACHE_URL" | tar xz
+
+cd httpd-$APACHE_VERSION
+./configure --prefix /app/$APACHE_PATH --enable-modules=all
+make
+make install
+
+
 
 PHP_URL="https://heroku-buildpack-php.s3.amazonaws.com/php-$PHP_VERSION""$heroku_rev"".tar.gz"
 echo "-----> Bundling PHP version $PHP_VERSION"
@@ -69,7 +77,7 @@ tail -F /app/apache/logs/access_log &
 export LD_LIBRARY_PATH=/app/php/lib/php
 export PHP_INI_SCAN_DIR=/app/www
 echo "Launching apache"
-exec /app/apache/bin/httpd -DNO_DETACH
+exec /app/apache/bin/apachectl start -DNO_DETACH
 EOF
 
 chmod +x boot.sh
