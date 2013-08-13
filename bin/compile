@@ -43,8 +43,9 @@ echo "-----> Bundling mcrypt version $MCRYPT_VERSION"
 curl --silent --max-time 60 --location "$MCRYPT_URL" | tar xz
 
 # APACHE_URL="https://heroku-buildpack-php.s3.amazonaws.com/apache-""$APACHE_VERSION""$heroku_rev"".tar.gz"
-APACHE_URL="http://mirrors.ibiblio.org/apache/httpd/httpd-""$APACHE_VERSION"".tar.gz"
+APACHE_URL="https://s3.amazonaws.com/meza/httpd-2.4.6.tar.gz"
 echo "-----> Bundling Apache version $APACHE_VERSION"
+echo "-----> from $APACHE_URL"
 curl --silent --max-time 60 --location "$APACHE_URL" | tar xz
 
 cd httpd-$APACHE_VERSION
