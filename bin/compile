@@ -51,7 +51,7 @@ cd httpd-$APACHE_VERSION
 ./configure --prefix /app/$APACHE_PATH --enable-modules=all
 make
 make install
-
+cd ..
 
 
 PHP_URL="https://heroku-buildpack-php.s3.amazonaws.com/php-$PHP_VERSION""$heroku_rev"".tar.gz"
