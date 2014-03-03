@@ -35,7 +35,7 @@ VENDORS_URL="https://meza.s3.amazonaws.com/heroku/vendor.tar.gz"
 echo "-----> Bundling vendors"
 curl --silent --max-time 60 --location "$VENDORS_URL" | tar xz
 
-PHP_URL="https://meza.s3.amazonaws.com/heroku/php.tar.gz"
+PHP_URL="https://meza.s3.amazonaws.com/heroku/php-5.5.9.tar.gz"
 echo "-----> Bundling PHP"
 curl --silent --max-time 60 --location "$PHP_URL" | tar xz
 
