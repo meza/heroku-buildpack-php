@@ -55,7 +55,7 @@ GIT_DIR_ORIG=$GIT_DIR
   COMPOSER_URL="http://getcomposer.org/composer.phar"
   curl --silent --max-time 60 --location "$COMPOSER_URL" > www/composer.phar
   cd www
-  LD_LIBRARY_PATH=/app/php/ext /app/php/bin/php -c $LP_DIR/conf/php.ini composer.phar install --prefer-source
+  LD_LIBRARY_PATH=/app/php/ext /app/bin/php -c $LP_DIR/conf/php.ini composer.phar install --prefer-source
   rm -rf vendor/**/.git
   cd /app
   rm www/composer.phar
