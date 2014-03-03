@@ -29,15 +29,15 @@ fi
 
 APACHE_URL="https://meza.s3.amazonaws.com/heroku/apache.tar.gz"
 echo "-----> Bundling Apache version $APACHE_VERSION"
-curl --silent --max-time 60 --location "$APACHE_URL" | tar xz
+curl --silent --max-time 60 --location "$APACHE_URL" | tar xzvf
 
 VENDORS_URL="https://meza.s3.amazonaws.com/heroku/vendor.tar.gz"
 echo "-----> Bundling vendors"
-curl --silent --max-time 60 --location "$VENDORS_URL" | tar xz
+curl --silent --max-time 60 --location "$VENDORS_URL" | tar xzvf
 
 PHP_URL="https://meza.s3.amazonaws.com/heroku/php-5.5.9.tar.gz"
 echo "-----> Bundling PHP"
-curl --silent --max-time 60 --location "$PHP_URL" | tar xz
+curl --silent --max-time 60 --location "$PHP_URL" | tar xzvf
 
 ls -la /app/php/bin
 
