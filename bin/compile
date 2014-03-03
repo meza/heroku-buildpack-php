@@ -35,14 +35,18 @@ VENDORS_URL="https://meza.s3.amazonaws.com/heroku/vendor.tar.gz"
 echo "-----> Bundling vendors"
 curl --silent --max-time 60 --location "$VENDORS_URL" | tar xz
 
+PHP_URL="https://meza.s3.amazonaws.com/heroku/php.tar.gz"
+echo "-----> Bundling PHP"
+curl --silent --max-time 60 --location "$PHP_URL" | tar xz
+
 
 # update config files
 cp $LP_DIR/conf/httpd.conf $APACHE_PATH/conf
-#cp $LP_DIR/conf/php.ini php
+cp $LP_DIR/conf/php.ini php
 
 # make php available on bin
 mkdir -p bin
-#ln -s /app/php/bin/php bin/php
+ln -s /app/php/bin/php bin/php
 
 cat >>boot.sh <<EOF
 for var in \`env|cut -f1 -d=\`; do
