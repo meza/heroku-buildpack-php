@@ -39,6 +39,7 @@ PHP_URL="https://meza.s3.amazonaws.com/heroku/php-5.5.9.tar.gz"
 echo "-----> Bundling PHP"
 curl --silent --max-time 60 --location "$PHP_URL" | tar xz
 
+ls -la /app/php/bin
 
 # update config files
 cp $LP_DIR/conf/httpd.conf $APACHE_PATH/conf
