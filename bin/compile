@@ -44,7 +44,7 @@ cp $LP_DIR/conf/httpd.conf $APACHE_PATH/conf
 cp $LP_DIR/conf/php.ini php
 
 mkdir -p bin
-ln -s $BUILD_DIR/php/bin/php bin/php
+ln -s /app/php/bin/php bin/php
 
 if [ -f www/composer.json ] && [ ! -d www/vendor ]; then
 GIT_DIR_ORIG=$GIT_DIR
@@ -55,7 +55,7 @@ GIT_DIR_ORIG=$GIT_DIR
   cd www
   LD_LIBRARY_PATH=$BUILD_DIR/php/ext:$BUILD_DIR/vendor/pcre/lib $BUILD_DIR/bin/php -c $LP_DIR/conf/php.ini composer.phar install --prefer-source
   rm -rf vendor/**/.git
-  cd /app
+  cd $BUILD_DIR
   rm www/composer.phar
   export GIT_DIR=$GIT_DIR_ORIG
 fi
