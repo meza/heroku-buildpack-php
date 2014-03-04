@@ -48,8 +48,6 @@ mkdir -p $BUILD_DIR/apache/logs
 
 ln -s /app/php/bin/php bin/php
 
-$BUILD_DIR/php/bin/pecl install mongo
-
 if [ -f www/composer.json ] && [ ! -d www/vendor ]; then
 GIT_DIR_ORIG=$GIT_DIR
   unset GIT_DIR
