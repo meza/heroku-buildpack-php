@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # bin/release <build-dir>
 
+export PATH=$PATH:/app/vendor/node/bin
 grunt --help
 
 cat <<EOF
