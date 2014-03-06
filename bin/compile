@@ -59,7 +59,7 @@ if [ -f /app/node/bin/node ]; then
 else
     echo "no node"
     ls -la /app
-elif
+fi
 
 PATH=$PATH:$BUILD_DIR/node/bin
 
