@@ -56,7 +56,7 @@ ln -s /app/php/bin/php bin/php
 
 PATH=$PATH:$BUILD_DIR/node/bin
 
-LANG=C find $BUILD_DIR/node -type f -exec sed -i 's|/app|$BUILD_DIR|g' "{}" +;
+LANG=C find $BUILD_DIR/node -type f -exec sed -i "s|/app|$BUILD_DIR|g" "{}" +;
 
 if [ -f www/package.json ]; then
   echo "-----> Installing Node dependencies"
