@@ -46,8 +46,10 @@ NODE_PATH=$BUILD_DIR/vendor/node
 mv $BUILD_DIR/node-v0.10.26-linux-x64 $NODE_PATH
 chmod +x $NODE_PATH/bin
 
-echo "-----> Bundling sass"
-gem install sass
+if [ -f www/Gemfile ]; then
+    echo "-----> Bundling gems"
+    bundle install
+fi
 
 
 # update config files
