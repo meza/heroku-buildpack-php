@@ -27,7 +27,7 @@ if [ -f www/Procfile ]; then
   mv www/Procfile .
 fi
 
-APACHE_URL="https://meza.s3.amazonaws.com/heroku/apache.tar.gz"
+APACHE_URL="https://meza.s3.amazonaws.com/heroku/apache-2.4.tar.gz"
 echo "-----> Bundling Apache version $APACHE_VERSION"
 curl --silent --max-time 60 --location "$APACHE_URL" | tar xz
 
@@ -39,6 +39,10 @@ PHP_URL="https://meza.s3.amazonaws.com/heroku/php-5.5.9.tar.gz"
 echo "-----> Bundling PHP"
 curl --silent --max-time 60 --location "$PHP_URL" | tar xz
 
+NODE_URL="https://meza.s3.amazonaws.com/heroku/node.tar.gz"
+echo "-----> Bundling Node"
+curl --silent --max-time 60 --location "$NODE_URL" | tar x
+
 # update config files
 cp $LP_DIR/conf/httpd.conf $APACHE_PATH/conf
 cp $LP_DIR/conf/php.ini php/lib
@@ -49,8 +53,6 @@ mkdir -p bin
 mkdir -p $BUILD_DIR/apache/logs
 
 ln -s /app/php/bin/php bin/php
-
-$BUILD_DIR/vendor/node/bin/npm install -g grunt-cli
 
 if [ -f www/composer.json ] && [ ! -d www/vendor ]; then
 GIT_DIR_ORIG=$GIT_DIR
@@ -65,6 +67,14 @@ GIT_DIR_ORIG=$GIT_DIR
   rm www/composer.phar
   export GIT_DIR=$GIT_DIR_ORIG
 fi
+
+if [ -f www/package.json ]; then
+  echo "-----> Installing Node dependencies"
+  cd www
+  /app/node/bin/npm install
+  cd $BUILD_DIR
+fi
+
 
 cat >>boot.sh <<EOF
 for var in \`env|cut -f1 -d=\`; do
