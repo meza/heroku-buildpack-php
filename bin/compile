@@ -39,9 +39,12 @@ PHP_URL="https://meza.s3.amazonaws.com/heroku/php-5.5.9.tar.gz"
 echo "-----> Bundling PHP"
 curl --silent --max-time 60 --location "$PHP_URL" | tar xz
 
-NODE_URL="https://meza.s3.amazonaws.com/heroku/node.tar.gz"
+NODE_URL="http://nodejs.org/dist/v0.10.26/node-v0.10.26-linux-x64.tar.gz"
 echo "-----> Bundling Node"
-curl --silent --max-time 60 --location "$NODE_URL" | tar x
+curl --silent --max-time 60 --location "$NODE_URL" | tar xz
+NODE_PATH=$BUILD_DIR/vendor/node
+mv $BUILD_DIR/node-v0.10.26-linux-x64 $NODE_PATH
+chmod +x $NODE_PATH/bin
 
 # update config files
 cp $LP_DIR/conf/httpd.conf $APACHE_PATH/conf
@@ -54,14 +57,13 @@ mkdir -p $BUILD_DIR/apache/logs
 
 ln -s /app/php/bin/php bin/php
 
-PATH=$PATH:$BUILD_DIR/node/bin
+PATH=$PATH:$NODE_PATH/bin
 
-LANG=C find $BUILD_DIR/node -type f -exec sed -i "s|/app|$BUILD_DIR|g" "{}" +;
 
 if [ -f www/package.json ]; then
   echo "-----> Installing Node dependencies"
   cd www
-  $BUILD_DIR/node/bin/npm install
+  npm install
   cd $BUILD_DIR
 fi
 
