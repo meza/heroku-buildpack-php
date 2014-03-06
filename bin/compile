@@ -39,13 +39,6 @@ PHP_URL="https://meza.s3.amazonaws.com/heroku/php-5.5.9.tar.gz"
 echo "-----> Bundling PHP"
 curl --silent --max-time 60 --location "$PHP_URL" | tar xz
 
-NODE_URL="http://nodejs.org/dist/v0.10.26/node-v0.10.26-linux-x64.tar.gz"
-echo "-----> Bundling Node"
-curl --silent --max-time 60 --location "$NODE_URL" | tar xz
-NODE_PATH=$BUILD_DIR/vendor/node
-mv $BUILD_DIR/node-v0.10.26-linux-x64 $NODE_PATH
-chmod +x $NODE_PATH/bin
-
 # update config files
 cp $LP_DIR/conf/httpd.conf $APACHE_PATH/conf
 cp $LP_DIR/conf/php.ini php/lib
@@ -56,17 +49,6 @@ mkdir -p bin
 mkdir -p $BUILD_DIR/apache/logs
 
 ln -s /app/php/bin/php bin/php
-
-PATH=$PATH:$NODE_PATH/bin
-
-
-if [ -f www/package.json ]; then
-  echo "-----> Installing Node dependencies"
-  cd www
-  npm install
-  cd $BUILD_DIR
-fi
-
 
 if [ -f www/composer.json ] && [ ! -d www/vendor ]; then
 GIT_DIR_ORIG=$GIT_DIR
