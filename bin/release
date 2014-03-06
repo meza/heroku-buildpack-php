@@ -1,7 +1,28 @@
 #!/usr/bin/env bash
 # bin/release <build-dir>
 
-export PATH=$PATH:/app/vendor/node/bin
+export PATH=$PATH:$BUILD_DIR/node/bin
+
+if [ -f www/composer.json ] && [ ! -d www/vendor ]; then
+GIT_DIR_ORIG=$GIT_DIR
+  unset GIT_DIR
+  echo "-----> Installing Composer dependencies"
+  COMPOSER_URL="http://getcomposer.org/composer.phar"
+  curl --silent --max-time 60 --location "$COMPOSER_URL" > www/composer.phar
+  cd www
+  LD_LIBRARY_PATH=$BUILD_DIR/php/ext:$BUILD_DIR/vendor/pcre/lib $BUILD_DIR/php/bin/php -c $LP_DIR/conf/php.ini composer.phar install --prefer-source
+  rm -rf vendor/**/.git
+  cd $BUILD_DIR
+  rm www/composer.phar
+  export GIT_DIR=$GIT_DIR_ORIG
+fi
+
+if [ -f www/package.json ]; then
+  echo "-----> Installing Node dependencies"
+  cd www
+  npm install
+  cd $BUILD_DIR
+fi
 
 cat <<EOF
 ---

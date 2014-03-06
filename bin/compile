@@ -47,34 +47,13 @@ curl --silent --max-time 60 --location "$NODE_URL" | tar x
 cp $LP_DIR/conf/httpd.conf $APACHE_PATH/conf
 cp $LP_DIR/conf/php.ini php/lib
 
-chmod 755 php/lib/php/extensions/no-debug-non-zts-20121212/mongo.so
+chmod 755 $BUILD_DIR/php/lib/php/extensions/no-debug-non-zts-20121212/mongo.so
 
 mkdir -p bin
 mkdir -p $BUILD_DIR/apache/logs
 PATH=$PATH:$BUILD_DIR/node/bin
+
 ln -s /app/php/bin/php bin/php
-
-if [ -f www/composer.json ] && [ ! -d www/vendor ]; then
-GIT_DIR_ORIG=$GIT_DIR
-  unset GIT_DIR
-  echo "-----> Installing Composer dependencies"
-  COMPOSER_URL="http://getcomposer.org/composer.phar"
-  curl --silent --max-time 60 --location "$COMPOSER_URL" > www/composer.phar
-  cd www
-  LD_LIBRARY_PATH=$BUILD_DIR/php/ext:$BUILD_DIR/vendor/pcre/lib $BUILD_DIR/php/bin/php -c $LP_DIR/conf/php.ini composer.phar install --prefer-source
-  rm -rf vendor/**/.git
-  cd $BUILD_DIR
-  rm www/composer.phar
-  export GIT_DIR=$GIT_DIR_ORIG
-fi
-
-if [ -f www/package.json ]; then
-  echo "-----> Installing Node dependencies"
-  cd www
-  npm install
-  cd $BUILD_DIR
-fi
-
 
 cat >>boot.sh <<EOF
 for var in \`env|cut -f1 -d=\`; do
