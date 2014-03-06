@@ -54,9 +54,17 @@ mkdir -p $BUILD_DIR/apache/logs
 
 ln -s /app/php/bin/php bin/php
 
+if [ -f /app/node/bin/node ]; then
+    echo "has node"
+else
+    echo "no node"
+    ls -la /app
+elif
+
 PATH=$PATH:$BUILD_DIR/node/bin
 
 find $BUILD_DIR/node_modules -type f -print0 | xargs -0 sed -i 's/\/app/$BUILD_DIR/g'
+
 if [ -f www/composer.json ] && [ ! -d www/vendor ]; then
 GIT_DIR_ORIG=$GIT_DIR
   unset GIT_DIR
