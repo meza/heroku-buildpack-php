@@ -71,7 +71,7 @@ fi
 if [ -f www/package.json ]; then
   echo "-----> Installing Node dependencies"
   cd www
-  /app/node/bin/npm install
+  $BUILD_DIR/node/bin/npm install
   cd $BUILD_DIR
 fi
 
