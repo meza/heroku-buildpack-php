@@ -46,12 +46,6 @@ NODE_PATH=$BUILD_DIR/vendor/node
 mv $BUILD_DIR/node-v0.10.26-linux-x64 $NODE_PATH
 chmod +x $NODE_PATH/bin
 
-if [ -f www/Gemfile ]; then
-    echo "-----> Bundling gems"
-    bundle install
-fi
-
-
 # update config files
 cp $LP_DIR/conf/httpd.conf $APACHE_PATH/conf
 cp $LP_DIR/conf/php.ini php/lib
