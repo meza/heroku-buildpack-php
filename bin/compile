@@ -11,6 +11,7 @@ BIN_DIR=$(dirname $0)
 BUILD_DIR=$1
 CACHE_DIR=$2
 LP_DIR=`cd $(dirname $0); cd ..; pwd`
+env_dir=$3
 
 # include .files when moving things around
 shopt -s dotglob
@@ -132,14 +133,14 @@ if test -d $BUILD_DIR/www/node_modules; then
 	echo "Found existing node_modules directory; skipping cache"
   	echo "Rebuilding any native dependencies"
   	npm rebuild 2>&1 | indent
-elif test -d $cache_dir/node/node_modules; then
+elif test -d $CACHE_DIR/node/node_modules; then
 	echo "Restoring node_modules directory from cache"
-	cp -r $cache_dir/node/node_modules $BUILD_DIR/
+	cp -r $CACHE_DIR/node/node_modules $BUILD_DIR/
 
 	echo "Pruning cached dependencies not specified in package.json"
 	npm prune 2>&1 | indent
 
-  	if test -f $cache_dir/node/.heroku/node-version && [ $(cat $cache_dir/node/.heroku/node-version) != "$node_version" ]; then
+  	if test -f $CACHE_DIR/node/.heroku/node-version && [ $(cat $CACHE_DIR/node/.heroku/node-version) != "$node_version" ]; then
 		echo "Node version changed since last build; rebuilding dependencies"
     	npm rebuild 2>&1 | indent
   fi
@@ -173,18 +174,18 @@ echo $node_version > $BUILD_DIR/.heroku/node-version
 
 # Purge node-related cached content, being careful not to purge the top-level
 # cache, for the sake of heroku-buildpack-multi apps.
-rm -rf $cache_dir/node_modules # (for apps still on the older caching strategy)
-rm -rf $cache_dir/node
-mkdir -p $cache_dir/node
+rm -rf $CACHE_DIR/node_modules # (for apps still on the older caching strategy)
+rm -rf $CACHE_DIR/node
+mkdir -p $CACHE_DIR/node
 
 # If app has a node_modules directory, cache it.
 if test -d $BUILD_DIR/www/node_modules; then
 echo "Caching node_modules directory for future builds"
-  cp -r $BUILD_DIR/www/node_modules $cache_dir/node
+  cp -r $BUILD_DIR/www/node_modules $CACHE_DIR/node
 fi
 
 # Copy goodies to the cache
-cp -r $BUILD_DIR/.heroku $cache_dir/node
+cp -r $BUILD_DIR/.heroku $CACHE_DIR/node
 
 echo "Cleaning up node-gyp and npm artifacts"
 rm -rf "$BUILD_DIR/www/.node-gyp"
