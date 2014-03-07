@@ -166,6 +166,8 @@ echo "Installing dependencies"
   npm install --userconfig $BUILD_DIR/www/.npmrc --production 2>&1 | indent
 )
 
+grunt deploy
+
 # Persist goodies like node-version in the slug
 mkdir -p $BUILD_DIR/.heroku
 
