@@ -129,9 +129,9 @@ cd $BUILD_DIR/www
 # rebuild any native deps. Otherwise, restore from the build cache.
 
 if test -d $BUILD_DIR/www/node_modules; then
-echo "Found existing node_modules directory; skipping cache"
-  echo "Rebuilding any native dependencies"
-  npm rebuild 2>&1 | indent
+	echo "Found existing node_modules directory; skipping cache"
+  	echo "Rebuilding any native dependencies"
+  	npm rebuild 2>&1 | indent
 elif test -d $cache_dir/node/node_modules; then
 	echo "Restoring node_modules directory from cache"
 	cp -r $cache_dir/node/node_modules $BUILD_DIR/
