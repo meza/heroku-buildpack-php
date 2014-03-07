@@ -66,9 +66,9 @@ cp $LP_DIR/conf/php.ini php/lib
 
 mkdir -p bin
 ln -s /app/php/bin/php bin/php
-
+ls -la
 # Look in package.json's engines.node field for a semver range
-semver_range=$(cat $BUILD_DIR/package.json | $bp_dir/vendor/jq -r .engines.node)
+semver_range=$(cat $BUILD_DIR/package.json | $LP_DIR/vendor/jq -r .engines.node)
 
 # Resolve node version using semver.io
 node_version=$(curl --silent --get --data-urlencode "range=${semver_range}" https://semver.io/node/resolve)
