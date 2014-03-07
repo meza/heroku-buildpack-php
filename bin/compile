@@ -15,6 +15,24 @@ LP_DIR=`cd $(dirname $0); cd ..; pwd`
 # include .files when moving things around
 shopt -s dotglob
 
+export_env_dir() {
+  env_dir=$1
+  whitelist_regex=${2:-''}
+  blacklist_regex=${3:-'^(PATH|GIT_DIR|CPATH|CPPATH|LD_PRELOAD|LIBRARY_PATH)$'}
+  if [ -d "$env_dir" ]; then
+for e in $(ls $env_dir); do
+echo "$e" | grep -E "$whitelist_regex" | grep -qvE "$blacklist_regex" &&
+      export "$e=$(cat $env_dir/$e)"
+      :
+    done
+fi
+}
+
+protip() {
+  echo
+	echo "PRO TIP: $*"
+}
+
 cd $BUILD_DIR
 
 # move app things to www
@@ -31,6 +49,8 @@ APACHE_URL="https://meza.s3.amazonaws.com/heroku/apache-2.4.tar.gz"
 echo "-----> Bundling Apache version $APACHE_VERSION"
 curl --silent --max-time 60 --location "$APACHE_URL" | tar xz
 
+mkdir -p $BUILD_DIR/apache/logs
+
 VENDORS_URL="https://meza.s3.amazonaws.com/heroku/vendor.tar.gz"
 echo "-----> Bundling vendors"
 curl --silent --max-time 60 --location "$VENDORS_URL" | tar xz
@@ -38,17 +58,114 @@ curl --silent --max-time 60 --location "$VENDORS_URL" | tar xz
 PHP_URL="https://meza.s3.amazonaws.com/heroku/php-5.5.9.tar.gz"
 echo "-----> Bundling PHP"
 curl --silent --max-time 60 --location "$PHP_URL" | tar xz
+chmod 755 $BUILD_DIR/php/lib/php/extensions/no-debug-non-zts-20121212/mongo.so
 
 # update config files
 cp $LP_DIR/conf/httpd.conf $APACHE_PATH/conf
 cp $LP_DIR/conf/php.ini php/lib
 
-chmod 755 $BUILD_DIR/php/lib/php/extensions/no-debug-non-zts-20121212/mongo.so
-
 mkdir -p bin
-mkdir -p $BUILD_DIR/apache/logs
-
 ln -s /app/php/bin/php bin/php
+
+# Look in package.json's engines.node field for a semver range
+semver_range=$(cat $BUILD_DIR/package.json | $bp_dir/vendor/jq -r .engines.node)
+
+# Resolve node version using semver.io
+node_version=$(curl --silent --get --data-urlencode "range=${semver_range}" https://semver.io/node/resolve)
+
+# Recommend using semver ranges in a safe manner
+if [ "$semver_range" == "null" ]; then
+	protip "Specify a node version in package.json"
+	semver_range=""
+elif [ "$semver_range" == "*" ]; then
+	protip "Avoid using semver ranges like '*' in engines.node"
+elif [ ${semver_range:0:1} == ">" ]; then
+	protip "Avoid using semver ranges starting with '>' in engines.node"
+fi
+
+# Output info about requested range and resolved node version
+if [ "$semver_range" == "" ]; then
+	echo "Defaulting to latest stable node: $node_version"
+else
+	echo "Requested node range: $semver_range"
+	echo "Resolved node version: $node_version"
+fi
+
+echo "Downloading and installing node"
+node_url="http://s3pository.heroku.com/node/v$node_version/node-v$node_version-linux-x64.tar.gz"
+curl $node_url -s -o - | tar xzf - -C $BUILD_DIR
+
+# Move node (and npm) into ./vendor and make them executable
+mkdir -p $BUILD_DIR/vendor
+mv $BUILD_DIR/node-v$node_version-linux-x64 $BUILD_DIR/vendor/node
+chmod +x $BUILD_DIR/vendor/node/bin/*
+PATH=$PATH:$BUILD_DIR/vendor/node/bin
+
+cd $BUILD_DIR
+
+# If node_modules directory is checked into source control then
+# rebuild any native deps. Otherwise, restore from the build cache.
+if test -d $BUILD_DIR/node_modules; then
+echo "Found existing node_modules directory; skipping cache"
+  echo "Rebuilding any native dependencies"
+  npm rebuild 2>&1 | indent
+elif test -d $cache_dir/node/node_modules; then
+echo "Restoring node_modules directory from cache"
+  cp -r $cache_dir/node/node_modules $BUILD_DIR/
+
+  echo "Pruning cached dependencies not specified in package.json"
+  npm prune 2>&1 | indent
+
+  if test -f $cache_dir/node/.heroku/node-version && [ $(cat $cache_dir/node/.heroku/node-version) != "$node_version" ]; then
+echo "Node version changed since last build; rebuilding dependencies"
+    npm rebuild 2>&1 | indent
+  fi
+
+fi
+
+# Handle npm's new cert bug
+# http://blog.npmjs.org/post/78085451721/npms-self-signed-certificate-is-no-more
+if [ ! -f "$BUILD_DIR/.npmrc" ]; then
+echo "Writing a custom .npmrc to circumvent npm bugs"
+  echo "ca=" > "$BUILD_DIR/.npmrc"
+fi
+
+# Scope config var availability only to `npm install`
+(
+  if [ -d "$env_dir" ]; then
+echo "Exporting config vars to environment"
+    export_env_dir $env_dir
+  fi
+
+echo "Installing dependencies"
+  # Make npm output to STDOUT instead of its default STDERR
+  npm install --userconfig $BUILD_DIR/.npmrc --production 2>&1 | indent
+)
+
+# Persist goodies like node-version in the slug
+mkdir -p $BUILD_DIR/.heroku
+
+# Save resolved node version in the slug for later reference
+echo $node_version > $BUILD_DIR/.heroku/node-version
+
+# Purge node-related cached content, being careful not to purge the top-level
+# cache, for the sake of heroku-buildpack-multi apps.
+rm -rf $cache_dir/node_modules # (for apps still on the older caching strategy)
+rm -rf $cache_dir/node
+mkdir -p $cache_dir/node
+
+# If app has a node_modules directory, cache it.
+if test -d $BUILD_DIR/node_modules; then
+echo "Caching node_modules directory for future builds"
+  cp -r $BUILD_DIR/node_modules $cache_dir/node
+fi
+
+# Copy goodies to the cache
+cp -r $BUILD_DIR/.heroku $cache_dir/node
+
+echo "Cleaning up node-gyp and npm artifacts"
+rm -rf "$BUILD_DIR/.node-gyp"
+rm -rf "$BUILD_DIR/.npm"
 
 if [ -f www/composer.json ] && [ ! -d www/vendor ]; then
 GIT_DIR_ORIG=$GIT_DIR
