@@ -67,11 +67,7 @@ cp $LP_DIR/conf/php.ini php/lib
 mkdir -p bin
 ln -s /app/php/bin/php bin/php
 
-
-curl --max-time 60 --location "https://meza.s3.amazonaws.com/heroku/jq" -o jq
-
-# Look in package.json's engines.node field for a semver range
-semver_range=$(cat $BUILD_DIR/www/package.json | jq -r .engines.node)
+semver_range="0.10.26"
 
 # Resolve node version using semver.io
 node_version=$(curl --silent --get --data-urlencode "range=${semver_range}" https://semver.io/node/resolve)
