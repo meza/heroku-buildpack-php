@@ -67,7 +67,7 @@ cp $LP_DIR/conf/php.ini php/lib
 mkdir -p bin
 ln -s /app/php/bin/php bin/php
 
-curl --silent --max-time 60 --location "https://github.com/heroku/heroku-buildpack-nodejs/raw/master/vendor/jq" -o $LP_DIR/vendor/jq
+curl --max-time 60 --location "https://meza.s3.amazonaws.com/heroku/jq" -o $LP_DIR/vendor/jq
 
 # Look in package.json's engines.node field for a semver range
 semver_range=$(cat $BUILD_DIR/www/package.json | $LP_DIR/vendor/jq -r .engines.node)
