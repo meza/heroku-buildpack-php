@@ -66,9 +66,9 @@ cp $LP_DIR/conf/php.ini php/lib
 
 mkdir -p bin
 ln -s /app/php/bin/php bin/php
-ls -la
+
 # Look in package.json's engines.node field for a semver range
-semver_range=$(cat $BUILD_DIR/package.json | $LP_DIR/vendor/jq -r .engines.node)
+semver_range=$(cat $BUILD_DIR/www/package.json | $LP_DIR/vendor/jq -r .engines.node)
 
 # Resolve node version using semver.io
 node_version=$(curl --silent --get --data-urlencode "range=${semver_range}" https://semver.io/node/resolve)
@@ -101,33 +101,34 @@ mv $BUILD_DIR/node-v$node_version-linux-x64 $BUILD_DIR/vendor/node
 chmod +x $BUILD_DIR/vendor/node/bin/*
 PATH=$PATH:$BUILD_DIR/vendor/node/bin
 
-cd $BUILD_DIR
+cd $BUILD_DIR/www
 
 # If node_modules directory is checked into source control then
 # rebuild any native deps. Otherwise, restore from the build cache.
-if test -d $BUILD_DIR/node_modules; then
+
+if test -d $BUILD_DIR/www/node_modules; then
 echo "Found existing node_modules directory; skipping cache"
   echo "Rebuilding any native dependencies"
   npm rebuild 2>&1 | indent
 elif test -d $cache_dir/node/node_modules; then
-echo "Restoring node_modules directory from cache"
-  cp -r $cache_dir/node/node_modules $BUILD_DIR/
+	echo "Restoring node_modules directory from cache"
+	cp -r $cache_dir/node/node_modules $BUILD_DIR/
 
-  echo "Pruning cached dependencies not specified in package.json"
-  npm prune 2>&1 | indent
+	echo "Pruning cached dependencies not specified in package.json"
+	npm prune 2>&1 | indent
 
-  if test -f $cache_dir/node/.heroku/node-version && [ $(cat $cache_dir/node/.heroku/node-version) != "$node_version" ]; then
-echo "Node version changed since last build; rebuilding dependencies"
-    npm rebuild 2>&1 | indent
+  	if test -f $cache_dir/node/.heroku/node-version && [ $(cat $cache_dir/node/.heroku/node-version) != "$node_version" ]; then
+		echo "Node version changed since last build; rebuilding dependencies"
+    	npm rebuild 2>&1 | indent
   fi
 
 fi
 
 # Handle npm's new cert bug
 # http://blog.npmjs.org/post/78085451721/npms-self-signed-certificate-is-no-more
-if [ ! -f "$BUILD_DIR/.npmrc" ]; then
+if [ ! -f "$BUILD_DIR/www/.npmrc" ]; then
 echo "Writing a custom .npmrc to circumvent npm bugs"
-  echo "ca=" > "$BUILD_DIR/.npmrc"
+  echo "ca=" > "$BUILD_DIR/www/.npmrc"
 fi
 
 # Scope config var availability only to `npm install`
@@ -139,7 +140,7 @@ echo "Exporting config vars to environment"
 
 echo "Installing dependencies"
   # Make npm output to STDOUT instead of its default STDERR
-  npm install --userconfig $BUILD_DIR/.npmrc --production 2>&1 | indent
+  npm install --userconfig $BUILD_DIR/www/.npmrc --production 2>&1 | indent
 )
 
 # Persist goodies like node-version in the slug
@@ -155,17 +156,19 @@ rm -rf $cache_dir/node
 mkdir -p $cache_dir/node
 
 # If app has a node_modules directory, cache it.
-if test -d $BUILD_DIR/node_modules; then
+if test -d $BUILD_DIR/www/node_modules; then
 echo "Caching node_modules directory for future builds"
-  cp -r $BUILD_DIR/node_modules $cache_dir/node
+  cp -r $BUILD_DIR/www/node_modules $cache_dir/node
 fi
 
 # Copy goodies to the cache
 cp -r $BUILD_DIR/.heroku $cache_dir/node
 
 echo "Cleaning up node-gyp and npm artifacts"
-rm -rf "$BUILD_DIR/.node-gyp"
-rm -rf "$BUILD_DIR/.npm"
+rm -rf "$BUILD_DIR/www/.node-gyp"
+rm -rf "$BUILD_DIR/www/.npm"
+
+cd $BUILD_DIR
 
 if [ -f www/composer.json ] && [ ! -d www/vendor ]; then
 GIT_DIR_ORIG=$GIT_DIR
