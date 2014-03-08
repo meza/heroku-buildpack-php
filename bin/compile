@@ -229,5 +229,9 @@ EOF
 
 chmod +x boot.sh
 
+cat >>Procfile <<EOF
+web: sh boot.sh
+EOF
+
 # clean the cache
 rm -rf $CACHE_DIR
