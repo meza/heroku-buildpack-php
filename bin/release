@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # bin/release <build-dir>
 
+env
+
 export PATH=$PATH:$BUILD_DIR/node/bin
 
 if [ -f www/composer.json ] && [ ! -d www/vendor ]; then
