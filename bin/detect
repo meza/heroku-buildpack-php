@@ -3,6 +3,9 @@
 if [ -f $1/index.php ]; then
   echo "PHP" && exit 0
 else
+  if [ -f $1/index.html ]; then
+  	echo "PHP" && exit 0
+  fi
   echo "no" && exit 1
 fi
 
