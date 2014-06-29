@@ -4,6 +4,12 @@
 # fail fast
 set -e
 
+APACHE_VERSION=2.4.9
+PHP_VERSION=5.5.14
+VENDOR_VERSION=20140629
+
+BASE_URL=https://meza.s3.amazonaws.com/heroku
+
 APACHE_PATH="apache"
 PHP_PATH="php"
 
@@ -69,18 +75,18 @@ if [ -f www/Procfile ]; then
   mv www/Procfile .
 fi
 
-APACHE_URL="https://meza.s3.amazonaws.com/heroku/apache-2.4.tar.gz"
+APACHE_URL="$BASE_URL/apache-$APACHE_VERSION.tar.gz"
 echo "-----> Bundling Apache version $APACHE_VERSION"
 curl --silent --max-time 60 --location "$APACHE_URL" | tar xz
 
 mkdir -p $BUILD_DIR/apache/logs
 
-VENDORS_URL="https://meza.s3.amazonaws.com/heroku/vendor.tar.gz"
-echo "-----> Bundling vendors"
+VENDORS_URL="$BASE_URL/vendor-$VENDOR_VERSION.tar.gz"
+echo "-----> Bundling vendors version $VENDOR_VERSION"
 curl --silent --max-time 60 --location "$VENDORS_URL" | tar xz
 
-PHP_URL="https://meza.s3.amazonaws.com/heroku/php-5.5.9.tar.gz"
-echo "-----> Bundling PHP"
+PHP_URL="$BASE_URL/php-$PHP_VERSION.tar.gz"
+echo "-----> Bundling PHP version $PHP_VERSION"
 curl --silent --max-time 60 --location "$PHP_URL" | tar xz
 chmod 755 $BUILD_DIR/php/lib/php/extensions/no-debug-non-zts-20121212/mongo.so
 
