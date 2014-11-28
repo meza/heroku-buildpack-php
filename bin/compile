@@ -88,7 +88,7 @@ curl --silent --max-time 60 --location "$VENDORS_URL" | tar xz
 PHP_URL="$BASE_URL/php-$PHP_VERSION.tar.gz"
 echo "-----> Bundling PHP version $PHP_VERSION"
 curl --silent --max-time 60 --location "$PHP_URL" | tar xz
-# chmod 755 $BUILD_DIR/php/lib/php/extensions/no-debug-non-zts-20121212/mongo.so
+chmod 755 $BUILD_DIR/php/lib/php/extensions/no-debug-non-zts-20121212/mongo.so
 
 # update config files
 cp $LP_DIR/conf/httpd.conf $APACHE_PATH/conf
