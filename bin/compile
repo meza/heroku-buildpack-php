@@ -94,10 +94,10 @@ curl --silent --max-time 60 --location "$PHP_URL" | tar xz
 chmod 755 $BUILD_DIR/php/lib/php/extensions/no-debug-non-zts-20121212/*.so
 
 
-ls -la /app
-ls -la /app/vendor
-ls -la /app/vendor/node
-ls -la /app/vendor/node/bin
+ls -la /$BUILD_DIR
+ls -la /$BUILD_DIR/vendor
+ls -la /$BUILD_DIR/vendor/node
+ls -la /$BUILD_DIR/vendor/node/bin
 
 # update config files
 cp $LP_DIR/conf/httpd.conf $APACHE_PATH/conf
