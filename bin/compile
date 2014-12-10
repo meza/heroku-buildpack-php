@@ -108,6 +108,40 @@ ln -s $BUILD_DIR/php/bin/php bin/php
 PATH=$PATH:$BUILD_DIR/php/bin
 
 if [ -f www/package.json ]; then
+	semver_range="0.10.26"
+
+	# Resolve node version using semver.io
+	node_version=$(curl --silent --get --data-urlencode "range=${semver_range}" https://semver.io/node/resolve)
+
+	# Recommend using semver ranges in a safe manner
+	if [ "$semver_range" == "null" ]; then
+		protip "Specify a node version in package.json"
+		semver_range=""
+	elif [ "$semver_range" == "*" ]; then
+		protip "Avoid using semver ranges like '*' in engines.node"
+	elif [ ${semver_range:0:1} == ">" ]; then
+		protip "Avoid using semver ranges starting with '>' in engines.node"
+	fi
+
+	# Output info about requested range and resolved node version
+	if [ "$semver_range" == "" ]; then
+		echo "Defaulting to latest stable node: $node_version"
+	else
+		echo "Requested node range: $semver_range"
+		echo "Resolved node version: $node_version"
+	fi
+
+	echo "Downloading and installing node"
+	node_url="http://s3pository.heroku.com/node/v$node_version/node-v$node_version-linux-x64.tar.gz"
+	curl $node_url -s -o - | tar xzf - -C $BUILD_DIR
+
+	rm -rf $BUILD_DIR/vendor/node
+
+	# Move node (and npm) into ./vendor and make them executable
+	mkdir -p $BUILD_DIR/vendor
+	mv $BUILD_DIR/node-v$node_version-linux-x64 $BUILD_DIR/vendor/node
+	chmod +x $BUILD_DIR/vendor/node/bin/*
+
 	PATH=$PATH:$BUILD_DIR/vendor/node/bin
 
 	cd $BUILD_DIR/www
@@ -200,16 +234,16 @@ fi
 
 cat >>boot.sh <<EOF
 for var in \`env|cut -f1 -d=\`; do
-  echo "PassEnv \$var" >> $BUILD_DIR/apache/conf/httpd.conf;
+  echo "PassEnv \$var" >> /app/apache/conf/httpd.conf;
 done
-touch $BUILD_DIR/apache/logs/error_log
-touch $BUILD_DIR/apache/logs/access_log
-tail -F $BUILD_DIR/apache/logs/error_log &
-tail -F $BUILD_DIR/apache/logs/access_log &
-export LD_LIBRARY_PATH=$BUILD_DIR/php/lib/php
-export PHP_INI_SCAN_DIR=$BUILD_DIR/www
+touch /app/apache/logs/error_log
+touch /app/apache/logs/access_log
+tail -F /app/apache/logs/error_log &
+tail -F /app/apache/logs/access_log &
+export LD_LIBRARY_PATH=/app/php/lib/php
+export PHP_INI_SCAN_DIR=/app/www
 echo "Launching apache"
-exec $BUILD_DIR/apache/bin/httpd -DNO_DETACH
+exec /app/apache/bin/httpd -DNO_DETACH
 EOF
 
 chmod +x boot.sh
