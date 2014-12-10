@@ -164,7 +164,7 @@ if [ -f www/package.json ]; then
 	)
 	npm install -g grunt-cli
 	PATH=$PATH:$BUILD_DIR/www/node_modules/.bin
-	grunt deploy --staging
+	grunt deploy --production
 
 	# Persist goodies like node-version in the slug
 	mkdir -p $BUILD_DIR/.heroku
