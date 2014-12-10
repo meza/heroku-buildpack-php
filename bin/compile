@@ -18,6 +18,12 @@ CACHE_DIR=$2
 LP_DIR=`cd $(dirname $0); cd ..; pwd`
 env_dir=$3
 
+
+protip() {
+  echo
+	echo "PRO TIP: $*"
+}
+
 protip "BUILD dir: $BUILD_DIR"
 protip "Cache dir: $CACHE_DIR"
 protip "LP dir: $LP_DIR"
@@ -38,10 +44,7 @@ echo "$e" | grep -E "$whitelist_regex" | grep -qvE "$blacklist_regex" &&
 fi
 }
 
-protip() {
-  echo
-	echo "PRO TIP: $*"
-}
+
 
 # sed -l basically makes sed replace and buffer through stdin to stdout
 # so you get updates while the command runs and dont wait for the end
