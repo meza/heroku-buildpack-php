@@ -13,11 +13,14 @@ BASE_URL=https://meza.s3.amazonaws.com/heroku
 APACHE_PATH="apache"
 PHP_PATH="php"
 
-BIN_DIR=$(dirname $0)
 BUILD_DIR=$1
 CACHE_DIR=$2
 LP_DIR=`cd $(dirname $0); cd ..; pwd`
 env_dir=$3
+
+protip "BUILD dir: $BUILD_DIR"
+protip "Cache dir: $CACHE_DIR"
+protip "LP dir: $LP_DIR"
 
 # include .files when moving things around
 shopt -s dotglob
@@ -60,9 +63,6 @@ indent() {
     echo "-----> $*"
   }
 
-
-
-
 cd $BUILD_DIR
 
 # move app things to www
@@ -89,6 +89,12 @@ PHP_URL="$BASE_URL/php-$PHP_VERSION.tar.gz"
 echo "-----> Bundling PHP version $PHP_VERSION"
 curl --silent --max-time 60 --location "$PHP_URL" | tar xz
 chmod 755 $BUILD_DIR/php/lib/php/extensions/no-debug-non-zts-20121212/*.so
+
+
+ls -la /app
+ls -la /app/vendor
+ls -la /app/vendor/node
+ls -la /app/vendor/node/bin
 
 # update config files
 cp $LP_DIR/conf/httpd.conf $APACHE_PATH/conf
