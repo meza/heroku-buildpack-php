@@ -18,16 +18,6 @@ CACHE_DIR=$2
 LP_DIR=`cd $(dirname $0); cd ..; pwd`
 env_dir=$3
 
-
-protip() {
-  echo
-	echo "PRO TIP: $*"
-}
-
-protip "BUILD dir: $BUILD_DIR"
-protip "Cache dir: $CACHE_DIR"
-protip "LP dir: $LP_DIR"
-
 # include .files when moving things around
 shopt -s dotglob
 
@@ -36,68 +26,55 @@ export_env_dir() {
   whitelist_regex=${2:-''}
   blacklist_regex=${3:-'^(PATH|GIT_DIR|CPATH|CPPATH|LD_PRELOAD|LIBRARY_PATH)$'}
   if [ -d "$env_dir" ]; then
-for e in $(ls $env_dir); do
-echo "$e" | grep -E "$whitelist_regex" | grep -qvE "$blacklist_regex" &&
-      export "$e=$(cat $env_dir/$e)"
-      :
-    done
-fi
+	  for e in $(ls $env_dir); do
+		echo "$e" | grep -E "$whitelist_regex" | grep -qvE "$blacklist_regex" &&
+      	export "$e=$(cat $env_dir/$e)"
+      	:
+    	done
+	fi
 }
 
-
-
-# sed -l basically makes sed replace and buffer through stdin to stdout
-# so you get updates while the command runs and dont wait for the end
-# e.g. npm install | indent
 indent() {
   c='s/^/ /'
   case $(uname) in
-    Darwin) sed -l "$c";; # mac/bsd sed: -l buffers on line boundaries
-    *) sed -u "$c";; # unix/gnu sed: -u unbuffered (arbitrary) chunks of data
+    Darwin) sed -l "$c";;
+    *) sed -u "$c";;
   esac
 }
 
-  error() {
-    echo " ! $*" >&2
-    exit 1
-  }
+error() {
+echo " ! $*" >&2
+exit 1
+}
 
-  status() {
-    echo "-----> $*"
-  }
+status() {
+echo "-----> $*"
+}
 
 cd $BUILD_DIR
 
-# move app things to www
 mkdir -p $CACHE_DIR/www
 mv * $CACHE_DIR/www
 mv $CACHE_DIR/www .
 
-# keep Procfile
 if [ -f www/Procfile ]; then
   mv www/Procfile .
 fi
 
 APACHE_URL="$BASE_URL/apache-$APACHE_VERSION.tar.gz"
-echo "-----> Bundling Apache version $APACHE_VERSION"
+status "Bundling Apache version $APACHE_VERSION"
 curl --silent --max-time 60 --location "$APACHE_URL" | tar xz
 
 mkdir -p $BUILD_DIR/apache/logs
 
 VENDORS_URL="$BASE_URL/vendor-$VENDOR_VERSION.tar.gz"
-echo "-----> Bundling vendors version $VENDOR_VERSION"
+status "Bundling vendors version $VENDOR_VERSION"
 curl --silent --max-time 60 --location "$VENDORS_URL" | tar xz
 
 PHP_URL="$BASE_URL/php-$PHP_VERSION.tar.gz"
-echo "-----> Bundling PHP version $PHP_VERSION"
+status "Bundling PHP version $PHP_VERSION"
 curl --silent --max-time 60 --location "$PHP_URL" | tar xz
 chmod 755 $BUILD_DIR/php/lib/php/extensions/no-debug-non-zts-20121212/*.so
-
-
-ls -la /$BUILD_DIR
-ls -la /$BUILD_DIR/vendor
-ls -la /$BUILD_DIR/vendor/node
-ls -la /$BUILD_DIR/vendor/node/bin
 
 # update config files
 cp $LP_DIR/conf/httpd.conf $APACHE_PATH/conf
@@ -125,13 +102,13 @@ if [ -f www/package.json ]; then
 
 	# Output info about requested range and resolved node version
 	if [ "$semver_range" == "" ]; then
-		echo "Defaulting to latest stable node: $node_version"
+		status "Defaulting to latest stable node: $node_version"
 	else
-		echo "Requested node range: $semver_range"
-		echo "Resolved node version: $node_version"
+		status "Requested node range: $semver_range"
+		status "Resolved node version: $node_version"
 	fi
 
-	echo "Downloading and installing node"
+	status "Downloading and installing node"
 	node_url="http://s3pository.heroku.com/node/v$node_version/node-v$node_version-linux-x64.tar.gz"
 	curl $node_url -s -o - | tar xzf - -C $BUILD_DIR
 
@@ -150,18 +127,18 @@ if [ -f www/package.json ]; then
 	# rebuild any native deps. Otherwise, restore from the build cache.
 
 	if test -d $BUILD_DIR/www/node_modules; then
-		echo "Found existing node_modules directory; skipping cache"
-		echo "Rebuilding any native dependencies"
+		status "Found existing node_modules directory; skipping cache"
+		status "Rebuilding any native dependencies"
 		npm rebuild 2>&1 | indent
 	elif test -d $CACHE_DIR/node/node_modules; then
-		echo "Restoring node_modules directory from cache"
+		status "Restoring node_modules directory from cache"
 		cp -r $CACHE_DIR/node/node_modules $BUILD_DIR/
 
-		echo "Pruning cached dependencies not specified in package.json"
+		status "Pruning cached dependencies not specified in package.json"
 		npm prune 2>&1 | indent
 
 		if test -f $CACHE_DIR/node/.heroku/node-version && [ $(cat $CACHE_DIR/node/.heroku/node-version) != "$node_version" ]; then
-			echo "Node version changed since last build; rebuilding dependencies"
+			status "Node version changed since last build; rebuilding dependencies"
 			npm rebuild 2>&1 | indent
 	  fi
 
@@ -170,14 +147,14 @@ if [ -f www/package.json ]; then
 	# Handle npm's new cert bug
 	# http://blog.npmjs.org/post/78085451721/npms-self-signed-certificate-is-no-more
 	if [ ! -f "$BUILD_DIR/www/.npmrc" ]; then
-	echo "Writing a custom .npmrc to circumvent npm bugs"
-	  echo "ca=" > "$BUILD_DIR/www/.npmrc"
+	status "Writing a custom .npmrc to circumvent npm bugs"
+	  status "ca=" > "$BUILD_DIR/www/.npmrc"
 	fi
 
 	# Scope config var availability only to `npm install`
 	(
 	  if [ -d "$env_dir" ]; then
-	echo "Exporting config vars to environment"
+	status "Exporting config vars to environment"
 		export_env_dir $env_dir
 	  fi
 
@@ -203,14 +180,14 @@ if [ -f www/package.json ]; then
 
 	# If app has a node_modules directory, cache it.
 	if test -d $BUILD_DIR/www/node_modules; then
-	echo "Caching node_modules directory for future builds"
+	status "Caching node_modules directory for future builds"
 	  cp -r $BUILD_DIR/www/node_modules $CACHE_DIR/node
 	fi
 
 	# Copy goodies to the cache
 	cp -r $BUILD_DIR/.heroku $CACHE_DIR/node
 
-	echo "Cleaning up node-gyp and npm artifacts"
+	status "Cleaning up node-gyp and npm artifacts"
 	rm -rf "$BUILD_DIR/www/.node-gyp"
 	rm -rf "$BUILD_DIR/www/.npm"
 fi
@@ -219,18 +196,16 @@ cd $BUILD_DIR
 if [ -f www/composer.json ] && [ ! -d www/vendor ]; then
 GIT_DIR_ORIG=$GIT_DIR
   unset GIT_DIR
-  echo "-----> Installing Composer dependencies"
+  status "Installing Composer dependencies"
   COMPOSER_URL="http://getcomposer.org/composer.phar"
   curl --silent --max-time 60 --location "$COMPOSER_URL" > www/composer.phar
   cd www
-  LD_LIBRARY_PATH=$BUILD_DIR/php/ext:$BUILD_DIR/vendor/pcre/lib $BUILD_DIR/php/bin/php -c $LP_DIR/conf/php.ini composer.phar install --prefer-source
+  LD_LIBRARY_PATH=$BUILD_DIR/php/ext:$BUILD_DIR/vendor/pcre/lib $BUILD_DIR/php/bin/php -c $LP_DIR/conf/php.ini composer.phar install --prefer-source | indent
   rm -rf vendor/**/.git
   cd $BUILD_DIR
   rm www/composer.phar
   export GIT_DIR=$GIT_DIR_ORIG
 fi
-
-
 
 cat >>boot.sh <<EOF
 for var in \`env|cut -f1 -d=\`; do
