@@ -83,6 +83,7 @@ cp $LP_DIR/conf/httpd.conf $APACHE_PATH/conf
 mkdir -p bin
 ln -s $BUILD_DIR/php/bin/php bin/php
 PATH=$PATH:$BUILD_DIR/php/bin
+cp $LP_DIR/conf/php.ini php/lib
 
 if [ -f www/package.json ]; then
 	semver_range="0.10.26"
