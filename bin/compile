@@ -197,10 +197,10 @@ if [ -f www/composer.json ] && [ ! -d www/vendor ]; then
 GIT_DIR_ORIG=$GIT_DIR
   unset GIT_DIR
   status "Installing Composer dependencies"
-  COMPOSER_URL="http://getcomposer.org/composer.phar"
+  export COMPOSER_URL="http://getcomposer.org/composer.phar"
   curl --silent --max-time 60 --location "$COMPOSER_URL" > www/composer.phar
   cd www
-  LD_LIBRARY_PATH=$BUILD_DIR/php/ext:$BUILD_DIR/vendor/pcre/lib $BUILD_DIR/php/bin/php -c $LP_DIR/conf/php.ini composer.phar install --prefer-source | indent
+  LD_LIBRARY_PATH=$BUILD_DIR/php/ext:$BUILD_DIR/vendor/pcre/lib:$BUILD_DIR/vendor/libmcrypt/lib $BUILD_DIR/php/bin/php composer.phar install --prefer-source | indent
   rm -rf vendor/**/.git
   cd $BUILD_DIR
   rm www/composer.phar
