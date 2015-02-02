@@ -76,8 +76,6 @@ status "Bundling PHP version $PHP_VERSION"
 curl --silent --max-time 60 --location "$PHP_URL" | tar xz
 chmod 755 $BUILD_DIR/php/lib/php/extensions/no-debug-non-zts-20121212/*.so
 
-sed 's/extension=mcrypt.so/extension=$BUILD_DIR\/php\/lib\/extension\/no-debug-non-zts-20121212\/mcrypt.so/g' -i $BUILD_DIR/php/lib/php.ini
-
 # update config files
 cp $LP_DIR/conf/httpd.conf $APACHE_PATH/conf
 
@@ -85,6 +83,8 @@ cp $LP_DIR/conf/httpd.conf $APACHE_PATH/conf
 mkdir -p bin
 ln -s $BUILD_DIR/php/bin/php bin/php
 PATH=$PATH:$BUILD_DIR/php/bin
+
+sed 's/extension=mcrypt.so/extension=$BUILD_DIR\/php\/lib\/extension\/no-debug-non-zts-20121212\/mcrypt.so/g' -i $BUILD_DIR/php/lib/php.ini
 
 if [ -f www/package.json ]; then
 	semver_range="0.10.26"
@@ -217,8 +217,8 @@ touch /app/apache/logs/error_log
 touch /app/apache/logs/access_log
 tail -F /app/apache/logs/error_log &
 tail -F /app/apache/logs/access_log &
-export LD_LIBRARY_PATH=/app/php/lib/php
-export PHP_INI_SCAN_DIR=/app/www
+export LD_LIBRARY_PATH=/app/php/lib/php:/app/php/ext:/app/vendor/pcre/lib:/app/vendor/libmcrypt/lib
+export PHP_INI_SCAN_DIR=/app/www/.php
 echo "Launching apache"
 exec /app/apache/bin/httpd -DNO_DETACH
 EOF
