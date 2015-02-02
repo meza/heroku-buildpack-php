@@ -218,7 +218,7 @@ tail -F /app/apache/logs/access_log &
 export LD_LIBRARY_PATH=/app/php/lib/php:/app/php/ext:/app/vendor/pcre/lib:/app/vendor/libmcrypt/lib
 export PHP_INI_SCAN_DIR=/app/www/.php
 echo "Launching apache"
-sed 's/extension=mcrypt.so/extension=$BUILD_DIR\/php\/lib\/extension\/no-debug-non-zts-20121212\/mcrypt.so/g' -i /app/php/lib/php.ini
+sed 's/extension=mcrypt.so/extension=\/app\/php\/lib\/extension\/no-debug-non-zts-20121212\/mcrypt.so/g' -i /app/php/lib/php.ini
 exec /app/apache/bin/httpd -DNO_DETACH
 EOF
 
