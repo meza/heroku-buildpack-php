@@ -84,6 +84,20 @@ mkdir -p bin
 ln -s $BUILD_DIR/php/bin/php bin/php
 PATH=$PATH:$BUILD_DIR/php/bin
 
+if [ -f www/composer.json ] && [ ! -d www/vendor ]; then
+GIT_DIR_ORIG=$GIT_DIR
+  unset GIT_DIR
+  status "Installing Composer dependencies"
+  COMPOSER_URL="http://getcomposer.org/composer.phar"
+  curl --silent --max-time 60 --location "$COMPOSER_URL" > www/composer.phar
+  cd www
+  LD_LIBRARY_PATH=$BUILD_DIR/php/ext:$BUILD_DIR/vendor/pcre/lib $BUILD_DIR/php/bin/php -c $LP_DIR/conf/php.ini composer.phar install --prefer-source | indent
+  rm -rf vendor/**/.git
+  cd $BUILD_DIR
+  rm www/composer.phar
+  export GIT_DIR=$GIT_DIR_ORIG
+fi
+
 if [ -f www/package.json ]; then
 	semver_range="0.10.26"
 
@@ -192,19 +206,7 @@ if [ -f www/package.json ]; then
 fi
 cd $BUILD_DIR
 
-if [ -f www/composer.json ] && [ ! -d www/vendor ]; then
-GIT_DIR_ORIG=$GIT_DIR
-  unset GIT_DIR
-  status "Installing Composer dependencies"
-  COMPOSER_URL="http://getcomposer.org/composer.phar"
-  curl --silent --max-time 60 --location "$COMPOSER_URL" > www/composer.phar
-  cd www
-  LD_LIBRARY_PATH=$BUILD_DIR/php/ext:$BUILD_DIR/vendor/pcre/lib $BUILD_DIR/php/bin/php -c $LP_DIR/conf/php.ini composer.phar install --prefer-source | indent
-  rm -rf vendor/**/.git
-  cd $BUILD_DIR
-  rm www/composer.phar
-  export GIT_DIR=$GIT_DIR_ORIG
-fi
+
 
 cat >>boot.sh <<EOF
 for var in \`env|cut -f1 -d=\`; do
