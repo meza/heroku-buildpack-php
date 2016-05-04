@@ -163,7 +163,7 @@ if [ -f www/package.json ]; then
 	  # Make npm output to STDOUT instead of its default STDERR
 	  npm install --userconfig $BUILD_DIR/www/.npmrc --production 2>&1 | indent
 	)
-	npm install -g grunt-cli
+
 	PATH=$PATH:$BUILD_DIR/www/node_modules/.bin
 	grunt deploy --production
 
